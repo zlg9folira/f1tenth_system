@@ -14,7 +14,9 @@ check_include_files(linux/joystick.h HAVE_LINUX_JOYSTICK_H)
 if(HAVE_LINUX_JOYSTICK_H)
   include_directories(msg/cpp ${catkin_INCLUDE_DIRS})
   add_executable(joy_node src/joy_node.cpp)
+  add_executable(joy_node_pedal src/joy_node_pedal.cpp)
   target_link_libraries(joy_node ${catkin_LIBRARIES})
+  target_link_libraries(joy_node_pedal ${catkin_LIBRARIES})
 else(HAVE_LINUX_JOYSTICK_H)
   message("Warning: no <linux/joystick.h>; won't build joy node")
 endif(HAVE_LINUX_JOYSTICK_H)
@@ -23,7 +25,7 @@ endif(HAVE_LINUX_JOYSTICK_H)
 
 # Install targets
 if(HAVE_LINUX_JOYSTICK_H)
-install(TARGETS joy_node
+install(TARGETS joy_node_pedal joy_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
