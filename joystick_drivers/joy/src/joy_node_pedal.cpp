@@ -32,6 +32,7 @@
 #include <algorithm>    // std::max
 #include <unistd.h>
 #include <math.h>
+#include <string>
 #include <linux/joystick.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -49,6 +50,7 @@ class Joystick
 {
 private:
   ros::NodeHandle nh_;
+  std::string gear; // it takes d for forward and r for reverse
   bool open_;
   bool sticky_buttons_;
   bool default_trig_val_;
@@ -193,7 +195,7 @@ public:
 
     // Parameters
     ros::NodeHandle nh_param("~");
-    pub_ = nh_.advertise<sensor_msgs::Joy>("joy", 1);
+    pub_ = nh_.advertise<sensor_msgs::Joy>("vesc/joy", 1);
     ros::Subscriber sub = nh_.subscribe("joy/set_feedback", 10, &Joystick::set_feedback, this);
     nh_param.param<std::string>("dev", joy_dev_, "/dev/input/js0");
     nh_param.param<std::string>("dev_ff", joy_def_ff_, "/dev/input/by-id/usb-Sony_PLAYSTATION_R_3_Controller-event-joystick");
@@ -266,6 +268,9 @@ public:
     event_count_ = 0;
     pub_count_ = 0;
     lastDiagTime_ = ros::Time::now().toSec();
+
+    // F: set gear to drive or "d" for default mode
+    this->gear = "d";
 
     // Big while loop opens, publishes
     while (nh_.ok())
@@ -404,6 +409,19 @@ public:
               }
             }
             joy_msg.buttons[event.number] = (event.value ? 1 : 0);
+
+            // F: MOMO Joystick comes with gear shifters, we use gear for drive/reverse gears
+            if (event.number == 9)
+            {
+                this->gear = "d";
+                //std::cout << "Forward Gear Activated!" << std::endl;
+            }
+            if (event.number == 8)
+            {
+               this->gear = "r";
+               //std::cout << "Reverse Gear Activated!" << std::endl;
+            }
+
             // For initial events, wait a bit before sending to try to catch
             // all the initial events.
             if (!(event.type & JS_EVENT_INIT))
@@ -457,9 +475,15 @@ public:
                 // Remap values for Thr (axis 1) and brk (axis 2) to correct range
                 // Thr serves as forward throttle command and Brk serves as reverse thtottle command (if required)
                 // Releasing either pedals will engage brake on F1TENTH
+
+
                 if (event.number == 1)
                 {
                     double mapped_val = mapValue(joy_msg.axes[event.number],1.0,-1.0);
+                    if (this->gear == "r")
+                    {
+                        mapped_val = -mapped_val;
+                    }
                     joy_msg.axes[event.number] = (mapped_val == 0.0) ? -0.0 : mapped_val;
                 }
                 if (event.number == 2)
