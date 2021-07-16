@@ -28,6 +28,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * New feature extention added by "Foad Hajiaghajani", University at Buffalo SUNY, NY
+ * The extension enables support for Logitech Steering wheel and Pedals (MOMO Racing)
+ * Gear shifter can be used to switch acceleration sign (+/-) in ROS-based robots for
+ * moving forward (D) and backward (R).
+*/
+
 //\author: Blaise Gassend
 #include <algorithm>    // std::max
 #include <unistd.h>
